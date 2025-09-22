@@ -1,4 +1,4 @@
-import { TextArea, TextField } from "@radix-ui/themes";
+import { Button, TextArea, TextField } from "@radix-ui/themes";
 
 const page = () => {
   return (
@@ -7,6 +7,7 @@ const page = () => {
         <TextField.Slot></TextField.Slot>
       </TextField.Root>
       <TextArea placeholder='Description' />
+      <Button>Submit new issue</Button>
     </div>
   );
 };
