@@ -1,20 +1,25 @@
 "use client";
-import { Button, Callout, Text, TextField } from "@radix-ui/themes";
+import ErrorMessage from "@/app/components/ErrorMessage";
+import { createIssueSchema } from "@/app/lib/validationSchema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, Callout, TextField } from "@radix-ui/themes";
 import axios from "axios";
 import "easymde/dist/easymde.min.css";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import SimpleMDE from "react-simplemde-editor";
-import { createIssueSchema } from "@/app/lib/validationSchema";
+import { Controller, useForm } from "react-hook-form"; 
 import z from "zod";
-import ErrorMessage from "@/app/components/ErrorMessage";
+import Spinner from "../../components/Spinner";
+import dynamic from "next/dynamic";
+const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
+  ssr: false,
+});
 
 type IssueForm = z.infer<typeof createIssueSchema>;
 
 const Page = () => {
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
     control,
@@ -24,6 +29,18 @@ const Page = () => {
     resolver: zodResolver(createIssueSchema),
   });
   const router = useRouter();
+
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      setIsSubmitting(true);
+      await axios.post("/api/issue", data);
+      router.push("/issues");
+    } catch (error) {
+      setIsSubmitting(false);
+      setError("Something wrong occured");
+    }
+  });
+
   return (
     <div className='max-w-xl'>
       {error && (
@@ -32,17 +49,7 @@ const Page = () => {
         </Callout.Root>
       )}
 
-      <form
-        onSubmit={handleSubmit(async (data) => {
-          try {
-            await axios.post("/api/issue", data);
-            router.push("/issues");
-          } catch (error) {
-            setError("Something wrong occured");
-          }
-        })}
-        className='max-w-xl space-y-3'
-      >
+      <form onSubmit={onSubmit} className='max-w-xl space-y-3'>
         <TextField.Root placeholder='Title' {...register("title")}>
           <TextField.Slot></TextField.Slot>
         </TextField.Root>
@@ -56,7 +63,9 @@ const Page = () => {
         />
         <ErrorMessage>{errors.description?.message}</ErrorMessage>
 
-        <Button>Submit new issue</Button>
+        <Button disabled={isSubmitting}>
+          Submit new issue {isSubmitting && <Spinner />}
+        </Button>
       </form>
     </div>
   );
