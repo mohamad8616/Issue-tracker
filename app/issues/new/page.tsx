@@ -7,7 +7,7 @@ import axios from "axios";
 import "easymde/dist/easymde.min.css";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form"; 
+import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 import Spinner from "../../components/Spinner";
 import dynamic from "next/dynamic";
@@ -35,9 +35,10 @@ const Page = () => {
       setIsSubmitting(true);
       await axios.post("/api/issue", data);
       router.push("/issues");
-    } catch (error) {
+    } catch (err) {
       setIsSubmitting(false);
       setError("Something wrong occured");
+      console.error(err);
     }
   });
 
